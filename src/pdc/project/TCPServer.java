@@ -1,10 +1,9 @@
-import com.sun.security.ntlm.Server;
+package pdc.project;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.InetAddress;
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -57,23 +56,22 @@ public class TCPServer {
             toRouter.println("Connection established.");
         }
 
-        // Communication while loop
-        while ((fromClient = fromRouter.readLine()) != null) {
-            System.out.println("Client said: " + fromClient);
-            if (fromClient.equals("Bye.")) // exit statement
-                break;
-
-            fromServer = fromClient.toUpperCase(); // converting received message to upper case
-            System.out.println("Server said: " + fromServer);
-            toRouter.println(fromServer); // sending the converted message back to the Client via ServerRouter
+        InputStream inputStream = client.getInputStream();
+        OutputStream outputStream = client.getOutputStream();
+        Image image;
+        while ((image = Util.receiveImage(inputStream)) != null) {
+            int x = 10, y = 20, w = 40, h = 50;
+            BufferedImage dst = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+            dst.getGraphics().drawImage(image, 0, 0, w, h, x, y, x + w, y + h, null);
+            Util.sendImage(dst, "jpg", outputStream);
         }
+        inputStream.close();
+        outputStream.close();
 
         // closing connections
         toRouter.close();
         fromRouter.close();
-        if (client != null) {
-            client.close();
-        }
+        client.close();
         Socket.close();
     }
 }

@@ -1,13 +1,14 @@
+package pdc.project;
+
+import javax.imageio.ImageIO;
 import java.io.*;
-import java.net.InetAddress;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
 public class TCPClient {
 
     // args: serverRouter IP, serverRouter Port, destination IP
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
 
         // Variables for setting up connection and communication
         Socket Socket = null; // socket to connect with ServerRouter
@@ -48,34 +49,26 @@ public class TCPClient {
         if (status.equals("Establishing new P2P connection.")) {
             Socket.close();
             server = new Socket(destinationAddress, 5550);
-            toRouter = new PrintWriter(server.getOutputStream(), true);
-            fromRouter = new BufferedReader(new InputStreamReader(server.getInputStream()));
-            toRouter.println("Connection established.");
         }
 
-        t0 = System.currentTimeMillis();
+        /* COMMUNICATION */
+        OutputStream outputStream = server.getOutputStream();
+        InputStream inputStream = server.getInputStream();
 
-        // Communication while loop
-        while ((fromServer = fromRouter.readLine()) != null) {
-            System.out.println("ServerRouter: " + fromServer);
-            t1 = System.currentTimeMillis();
-            if (fromServer.equals("Bye.")) // exit statement
-                break;
-            t = t1 - t0;
-            System.out.println("Cycle time: " + t);
-            fromUser = "Hello World";
-
-            System.out.println("Client: " + fromUser);
-            toRouter.println(fromUser); // sending the strings to the Server via ServerRouter
-            t0 = System.currentTimeMillis();
+        for (int i = 0; i < Util.imageNames.length; i++) {
+            String[] type = Util.imageNames[i].split(".");
+            Util.sendImage("images/" + Util.imageNames[i], type[1], outputStream);
+            Thread.sleep(5000);
+            ImageIO.write(Util.receiveImage(inputStream), type[1], new File("images/" + type[0] + "-cropped." + type[1]));
         }
+
+        inputStream.close();
+        outputStream.close();
 
         // closing connections
         toRouter.close();
         fromRouter.close();
-        if (server != null) {
-            server.close();
-        }
+        server.close();
         Socket.close();
     }
 }
