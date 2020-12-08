@@ -11,7 +11,7 @@ import java.net.UnknownHostException;
 public class TCPServer {
 
     // args: serverRouter IP, serverRouter Port, destination IP
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
 
         // Variables for setting up connection and communication
         Socket Socket = null; // socket to connect with ServerRouter
@@ -58,13 +58,19 @@ public class TCPServer {
 
         InputStream inputStream = client.getInputStream();
         OutputStream outputStream = client.getOutputStream();
-        Image image;
-        while ((image = Util.receiveImage(inputStream)) != null) {
-            int x = 10, y = 20, w = 40, h = 50;
-            BufferedImage dst = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-            dst.getGraphics().drawImage(image, 0, 0, w, h, x, y, x + w, y + h, null);
-            Util.sendImage(dst, "jpg", outputStream);
+
+        BufferedImage image;
+        boolean running = true;
+        while (running) {
+            image = Util.receiveImage(inputStream);
+            if (image != null) {
+                Rectangle rectangle = new Rectangle(50,30,80,80);
+                BufferedImage newImg = image.getSubimage(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+                Util.sendImage(newImg, "jpg", outputStream);
+            }
         }
+
+
         inputStream.close();
         outputStream.close();
 

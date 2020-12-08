@@ -49,6 +49,9 @@ public class SThread extends Thread {
                 System.out.println("Thread interrupted");
             }
 
+            // Determine if destination is in the associated routing table. If not,
+            // check the ask the other server router for its routing table.
+            // If the address exists, establish a new TCP conn
             server = in.readLine().startsWith("Server");
             int i = findAddress(routingTable, destination);
             if (i != -1) {

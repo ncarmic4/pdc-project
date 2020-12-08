@@ -24,13 +24,18 @@ public class Util {
         out.flush();
     }
 
-    public static BufferedImage receiveImage(InputStream in) throws IOException {
+    public static BufferedImage receiveImage(InputStream in) throws IOException, InterruptedException {
         byte[] sizeArr = new byte[4];
+        while (in.available() < 4) {
+            Thread.sleep(100);
+        }
         in.read(sizeArr);
         int size = ByteBuffer.wrap(sizeArr).asIntBuffer().get();
         byte[] imageArr = new byte[size];
+        while (in.available() < size) {
+            Thread.sleep(100);
+        }
         in.read(imageArr);
-
         return ImageIO.read(new ByteArrayInputStream(imageArr));
     }
 }

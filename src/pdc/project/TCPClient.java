@@ -1,6 +1,7 @@
 package pdc.project;
 
 import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -34,9 +35,7 @@ public class TCPClient {
 
         // Variables for message passing
         String fromServer; // messages received from ServerRouter
-        String fromUser; // messages sent to ServerRouter
         String destinationAddress = args[2]; // destination IP (Server)
-        long t0, t1, t;
 
         // Communication process (initial sends/receives
         toRouter.println(destinationAddress);// initial send to router (IP of the destination Server)
@@ -56,12 +55,13 @@ public class TCPClient {
         InputStream inputStream = server.getInputStream();
 
         for (int i = 0; i < Util.imageNames.length; i++) {
-            String[] type = Util.imageNames[i].split(".");
+            String[] type = Util.imageNames[i].split("\\.");
             Util.sendImage("images/" + Util.imageNames[i], type[1], outputStream);
-            Thread.sleep(5000);
-            ImageIO.write(Util.receiveImage(inputStream), type[1], new File("images/" + type[0] + "-cropped." + type[1]));
+            BufferedImage image = Util.receiveImage(inputStream);
+            if (image != null) {
+                ImageIO.write(image, type[1], new File("images/" + type[0] + "-cropped." + type[1]));
+            }
         }
-
         inputStream.close();
         outputStream.close();
 
